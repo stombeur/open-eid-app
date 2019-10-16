@@ -2,4 +2,4 @@
 
 Welcome
 
-[Test](e-id:This is a test)
+[Test](eid://TEST)
