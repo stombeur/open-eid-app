@@ -4,7 +4,7 @@ This is the repository for Open e-ID application
 
 ## Differences with previous project
 
-This project replaces previous Open e-ID projet
+This project replaces the old abandoned Open e-ID projet
 
 Here are the differences
 
