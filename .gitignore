@@ -1,6 +1,6 @@
 .DS_Store
-src/mac
-src/win
-src/node_modules
-src/package-lock.json
-src/Thumbs.db*
+mac
+win
+node_modules
+package-lock.json
+Thumbs.db*
