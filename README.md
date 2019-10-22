@@ -2,6 +2,12 @@
 
 This is the repository for Open e-ID application
 
+## Projet goals
+
+* Read e-ID card from a website
+* Sign data using e-ID card
+
+
 ## Differences with previous project
 
 This project replaces the old abandoned Open e-ID projet
