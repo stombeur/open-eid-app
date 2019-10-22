@@ -1,0 +1,22 @@
+[ req ]
+prompt             = no
+distinguished_name = my dn
+
+[ my dn ]
+# The bare minimum is probably a commonName
+commonName = Open e-ID
+countryName = BE
+localityName = Brussels
+organizationName = Open e-ID
+organizationalUnitName = Open e-ID application
+stateOrProvinceName = BE
+emailAddress = open.eid@outlook.com
+name = Open e-ID
+surname = Open
+givenName = e-ID
+initials = eID
+dnQualifier = eid
+
+[ my server exts ]
+keyUsage = digitalSignature
+extendedKeyUsage = codeSigning

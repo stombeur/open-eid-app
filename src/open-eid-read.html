@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>Open e-ID</title>
+<script type="text/javascript">
+<!--//
+
+var messageUI = window.deskgap.messageUI;
+window.addEventListener('load', function() {
+  
+  messageUI.on('url', function(e, url) {
+    document.getElementById('url').innerText = url;
+  });
+  
+  messageUI.on('libs', function(e, libs) {
+    var list = document.getElementById('lib');
+    list.options.length = libs.length;
+    for(var i = 0; i < libs.length; i++) {
+      list.options[i].value = libs[i].path;
+      list.options[i].text = libs[i].libraryDescription + ' (' + libs[i].path + ')';
+    }
+  });
+
+  messageUI.on('alert', function(e, options) {
+    if('msg' in options) {
+      document.getElementById('load').innerText = options.msg;
+    }
+  });
+  
+  document.getElementById('read').addEventListener('click', function() {
+    document.getElementById('load').style.display = 'block';
+    setTimeout(function() {
+      var list = document.getElementById('lib');
+      var lib = list.options[list.options.selectedIndex].value;
+      messageUI.send('read', {lib_path: lib});
+    }, 100);
+  });
+  
+  setTimeout(function() { document.getElementById('read').focus(); }, 100);
+});
+
+//-->
+</script>
+<style>
+
+label, #info {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+#read {
+  position: fixed;
+  right: 40px;
+  bottom: 40px;
+}
+
+#load {
+  display: none;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  background-image: url('loading.gif');
+  background-repeat: no-repeat;
+  background-position: center center;
+  z-index: 9999;
+}
+
+/* The container */
+.container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  line-height: 25px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+  border-radius: 5px;
+  border: solid 1px silver;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #fff;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.container .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid green;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+</style>
+</head>
+<body style="font-family: Arial; font-size: 12pt;">
+<form style="margin: 40px;">
+  <div id="info"><font id="url"></font> wants to read the e-ID card</div>
+  <label>Library</label>
+  <select id="lib" style="width: 100%; font-size: 12pt;">
+    <option value="">Loading...</option>
+  </select><br /><br />
+  <label class="container">Request user consent (sign read result)
+    <input type="checkbox" >
+    <span class="checkmark"></span>
+  </label>  
+  <br /><br />
+  <p align="right"><input type="button" style="font-size: 12pt;" id="read" value="Read e-ID" /></p>
+</form>
+<div id="load"></div>
+</body>
+</html>
