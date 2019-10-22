@@ -10,3 +10,4 @@ Here are the differences
 
 * Multi-platform - same codebase
 * No more browser extension
+* More professional user interface
