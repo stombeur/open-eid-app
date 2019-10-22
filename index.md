@@ -2,4 +2,4 @@
 
 Welcome
 
-[Test](eid://e-id.github.io/)
+[Test](eid://e-id.github.io/app/)
