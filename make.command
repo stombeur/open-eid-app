@@ -8,19 +8,14 @@ cp -f open-eid-read.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid-re
 cp -f loading.gif "./mac/Open e-ID.app/Contents/Resources/app/loading.gif"
 cp -f node_modules/pkcs11js/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/index.js"
 cp -f node_modules/pkcs11js/build/Release/pkcs11.node "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/build/Release/pkcs11.node"
-cp -f node_modules/active-win/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/active-win/index.js"
-cp -f node_modules/active-win/lib/macos.js "./mac/Open e-ID.app/Contents/Resources/node_modules/active-win/lib/macos.js"
-cp -f node_modules/active-win/main "./mac/Open e-ID.app/Contents/Resources/node_modules/active-win/main"
-#osacompile -o open-eid.app open-eid.applescript
+osacompile -o open-eid.app open-eid.applescript
 cp -f open-eid.app/Contents/MacOS/applet "./mac/Open e-ID.app/Contents/MacOS/applet"
 cp -f open-eid.app/Contents/Resources/applet.rsrc "./mac/Open e-ID.app/Contents/Resources/applet.rsrc"
 cp -f open-eid.app/Contents/Resources/Scripts/main.scpt "./mac/Open e-ID.app/Contents/Resources/Scripts/main.scpt"
 rm -f -R open-eid.app
-#exit
-#codesign --force --verbose -s "Open e-ID" "./mac/Open e-ID.app"
+codesign --force --verbose -s "Open e-ID" "./mac/Open e-ID.app"
 rm -f -R ~/Applications/Open\ e-ID.app
 cp -f -R "./mac/Open e-ID.app" ~/Applications/Open\ e-ID.app
 cd mac
 zip -r "../../rel/Open e-ID.app.zip" "Open e-ID.app"
-#./Open\ e-ID.app/Contents/MacOS/open-eid eid://e-id.github.io/app
 
