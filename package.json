@@ -1,7 +1,6 @@
 {
   "name": "open-eid",
   "main": "open-eid.js",
-  "bin": "open-eid.js",
   "version": "0.0.1",
   "description": "Open e-ID application",
   "author": "Open e-ID",
