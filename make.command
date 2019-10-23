@@ -7,7 +7,7 @@ cp -f open-eid.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid.html"
 cp -f open-eid-read.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid-read.html"
 cp -f loading.gif "./mac/Open e-ID.app/Contents/Resources/app/loading.gif"
 cp -f node_modules/pkcs11js/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/index.js"
-cp -f node_modules/pkcs11js/build/Release/pkcs11.node "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/build/Release/pkcs11.node"
+#cp -f node_modules/pkcs11js/build/Release/pkcs11.node "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/build/Release/pkcs11.node"
 osacompile -o open-eid.app open-eid.applescript
 cp -f open-eid.app/Contents/MacOS/applet "./mac/Open e-ID.app/Contents/MacOS/applet"
 cp -f open-eid.app/Contents/Resources/applet.rsrc "./mac/Open e-ID.app/Contents/Resources/applet.rsrc"
