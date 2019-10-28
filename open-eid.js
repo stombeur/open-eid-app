@@ -31,6 +31,14 @@ try {
     }
   }
   
+  if(os.platform().indexOf('win') == 0) {
+    var activeWin = new String(execSync(__dirname + '\\active-win.exe', { windowsHide: true }));
+    if(activeWin.indexOf('{') == 0) {
+      activeWinObj = JSON.parse(activeWin);
+      if('path' in activeWinObj) browser = activeWinObj.path;
+    }
+  }
+  
   ipcMain.on('get-url', function(e, message) {
     e.sender.send('url', args.replace(proto, 'https'));
   });
@@ -53,8 +61,9 @@ try {
         mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card'}); 
         return;
       }
-      var slot = slots[0];
       
+      var slot = slots[0];
+            
       try {  
         session = pkcs11.C_OpenSession(slot, pkcs11js.CKF_RW_SESSION | pkcs11js.CKF_SERIAL_SESSION);
       } catch(e) {
@@ -95,6 +104,7 @@ try {
       
       var url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
       var cmd = '';
+      var options = {};
       if(os.platform() == 'darwin') {
         if(bundle == 'com.google.Chrome') {
           browser += 'Contents/MacOS/Google Chrome';
@@ -104,11 +114,42 @@ try {
         }
       } else {
         fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL.txt'), url);
-        // TEST
-        url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent('{"test":"test"}');
-        cmd = 'iexplore "' + url + '"';
+        if(url.length > 8000) {
+          for(var k in data) {
+            if(k.indexOf('_data') != -1) delete data[k];
+          }
+          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
+        }
+        if(url.length > 8000) {
+          for(var k in data) {
+            if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
+          }
+          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
+        }
+        if(url.length > 8000) {
+          for(var k in data) {
+            if(k == 'photo_file') delete data[k];
+          }
+          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
+        }
+        if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
+          if(url.length > 2048) {
+            for(var k in data) {
+              if(k == 'photo_file') delete data[k];
+            }
+            url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
+          }          
+        }
+        options = { windowsHide: true };
+        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
+        if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
+          cmd = '"' + browser + '" --args --app="' + url + '"';          
+        } else {
+          cmd = '"' + browser + '" "' + url + '"';
+        }
       }
-    	exec(cmd);    
+      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.txt'), cmd);
+    	exec(cmd, options);    
       app.quit();
       
     } catch(e){
