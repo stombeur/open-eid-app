@@ -66,16 +66,18 @@ try {
         try { pkcs11.C_Finalize(); } catch(e4) {}        
         mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card\n\n' + e3.toString()}); 
         setTimeout(function() {
+          mainWindow.webView.send('alert', {msg: ''}); 
           eid_read(options);
-        }, 1000);
+        }, 2000);
         return false;
       }
       if(slots.length == 0) {
         try { pkcs11.C_Finalize(); } catch(e4) {}        
         mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card'}); 
         setTimeout(function() {
+          mainWindow.webView.send('alert', {msg: ''}); 
           eid_read(options);
-        }, 1000);
+        }, 2000);
         return false;
       }
       
