@@ -250,6 +250,8 @@ try {
             title: 'Open e-ID',
             titleBarStyle: 'hiddenInset',
             resizable: false,
+            minimizable: false,
+            maximizable: false,
             show: false,
             width: 300, height: 100,
             center: true,
