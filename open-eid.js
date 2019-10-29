@@ -164,7 +164,7 @@ try {
         if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
           cmd = '"' + browser + '" --args --app="' + url + '"';
         //} else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-          //cmd = '"' + browser + '" -k "' + url + '"';          
+          //cmd = '"' + browser + '" -k "' + url + '"';     
         } else {
           cmd = '"' + browser + '" "' + url + '"';
         }
