@@ -308,5 +308,6 @@ try {
     //try { pkcs11.C_Finalize(); } catch(e2) {}
     //fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
     //app.quit();
+    dialog.showErrorBox('Error', e.toString());
 }
 
