@@ -161,6 +161,9 @@ try {
         }
         options = { windowsHide: true };
         fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
+        
+        // todo - firefox (new process + enabled script window close)
+        
         if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
           cmd = '"' + browser + '" --args --app="' + url + '"';
         //} else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
