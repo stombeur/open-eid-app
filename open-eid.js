@@ -1,6 +1,6 @@
 /* open-eid.js */
 
-const { app, BrowserWindow, MenuItem, Menu, ipcMain, systemPreferences, dialog } = require('deskgap');
+const { app, BrowserWindow, MenuItem, Menu, ipcMain, ipcRenderer, systemPreferences, dialog } = require('deskgap');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
@@ -49,6 +49,10 @@ try {
 
 
   ipcMain.on('read', function(e, options) {
+    eid_read(options);                   
+  });  
+ 
+  function eid_read(options) {
     try {
       console.log('Read using ' + options.lib_path);
       pkcs11 = new pkcs11js.PKCS11();
@@ -56,17 +60,30 @@ try {
       pkcs11.C_Initialize();
 
       // Getting list of slots
-      var slots = pkcs11.C_GetSlotList(true);
+      try {
+        var slots = pkcs11.C_GetSlotList(true);
+      } catch(e3) {
+        try { pkcs11.C_Finalize(); } catch(e4) {}        
+        mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card\n\n' + e3.toString()}); 
+        setTimeout(function() {
+          eid_read(options);
+        }, 1000);
+        return false;
+      }
       if(slots.length == 0) {
+        try { pkcs11.C_Finalize(); } catch(e4) {}        
         mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card'}); 
-        return;
+        setTimeout(function() {
+          eid_read(options);
+        }, 1000);
+        return false;
       }
       
       var slot = slots[0];
             
       try {  
         session = pkcs11.C_OpenSession(slot, pkcs11js.CKF_RW_SESSION | pkcs11js.CKF_SERIAL_SESSION);
-      } catch(e) {
+      } catch(e3) {
         mainWindow.webView.send('alert', {msg: 'Please connect reader and insert card'}); 
         return;
       }
@@ -93,7 +110,7 @@ try {
             if(key.indexOf('_data') != -1 || key.indexOf('_file') != -1) value = attrs[3].value.toString('base64');
             data[key] = value;
             
-          } catch(e) {
+          } catch(e3) {
             // ignore
           }
           hObject = pkcs11.C_FindObjects(session);
@@ -143,7 +160,9 @@ try {
         options = { windowsHide: true };
         fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
         if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
-          cmd = '"' + browser + '" --args --app="' + url + '"';          
+          cmd = '"' + browser + '" --args --app="' + url + '"';
+        //} else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
+          //cmd = '"' + browser + '" -k "' + url + '"';          
         } else {
           cmd = '"' + browser + '" "' + url + '"';
         }
@@ -152,11 +171,11 @@ try {
     	exec(cmd, options);    
       app.quit();
       
-    } catch(e){
-      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
-      app.quit();
-    }                              
-  });  
+    } catch(e2){
+      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e2.toString());
+      //app.quit();
+    }       
+  }
  
   var fx = {
     'eid': 'read',
@@ -190,11 +209,10 @@ try {
         }).once('ready-to-show', () => {
           
           try {
-                                
+            
+            mainWindow.setMenu(null);    
             mainWindow.show();
             if(os.platform() == 'darwin') exec('osascript -e \'tell application "Open e-ID" to activate\'');
-            //mainWindow.webView.send('url', args.replace(proto, 'https'));  
-            //locate_libs();                      
           
           } catch(e){
             
@@ -283,10 +301,10 @@ try {
   }
   
 } catch(e){
-    try { pkcs11.C_FindObjectsFinal(session); } catch(e2) {}
-    try { pkcs11.C_CloseSession(session); } catch(e2) {}                                
-    try { pkcs11.C_Finalize(); } catch(e2) {}
-    fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
-    app.quit();
+    //try { pkcs11.C_FindObjectsFinal(session); } catch(e2) {}
+    //try { pkcs11.C_CloseSession(session); } catch(e2) {}                                
+    //try { pkcs11.C_Finalize(); } catch(e2) {}
+    //fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
+    //app.quit();
 }
 
