@@ -24,7 +24,7 @@ eid.read = function() {
 <form style="margin: 40px;">
   <div id="info"><font id="url"></font> wants to read the e-ID card</div>
   <label>Library</label>
-  <select id="lib" style="width: 100%; font-size: 12pt;">
+  <select id="lib" disabled style="width: 100%; font-size: 12pt;">
     <option value="">Loading...</option>
   </select><br /><br />
   <label class="container">Request user consent (sign read result)
@@ -59,6 +59,7 @@ messageUI.on('libs', function(e, libs) {
     list.options[i].value = libs[i].path;
     list.options[i].text = libs[i].libraryDescription + ' (' + libs[i].path + ')';
   }
+  list.disabled = false;
   document.getElementById('read').disabled = false;
 });
 

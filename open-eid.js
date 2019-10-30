@@ -128,6 +128,12 @@ try {
         if(bundle == 'com.google.Chrome') {
           browser += 'Contents/MacOS/Google Chrome';
           cmd = '"' + browser + '" --args --app="' + url + '"';
+        } else if(bundle == 'org.mozilla.firefox') {
+          browser += 'Contents/MacOS/firefox';
+          cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';
+        } else if(bundle == 'com.apple.Safari') {
+          browser += 'Contents/MacOS/Safari';
+          cmd = 'open -a Safari "' + url + '"';
         } else {
           cmd = 'open "' + browser + '" "' + url + '"';     
         }
@@ -166,6 +172,8 @@ try {
         
         if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
           cmd = '"' + browser + '" --args --app="' + url + '"';
+        } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
+          cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         //} else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
           //cmd = '"' + browser + '" -k "' + url + '"';     
         } else {
@@ -208,6 +216,8 @@ try {
             title: 'Open e-ID',
             titleBarStyle: 'default',
             resizable: true,
+            minimizable: false,
+            maximizable: false,            
             show: false,
             width: 500, height: 300,
             center: true,
