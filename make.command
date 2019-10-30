@@ -1,6 +1,7 @@
 #!/bin/sh
 
 cd "`dirname "$0"`"
+find . -name '.DS_Store' -type f -delete
 cp -f package.json "./mac/Open e-ID.app/Contents/Resources/app/package.json"
 cp -f open-eid.js "./mac/Open e-ID.app/Contents/Resources/app/open-eid.js"
 cp -f open-eid.css "./mac/Open e-ID.app/Contents/Resources/app/open-eid.css"
