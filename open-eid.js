@@ -143,9 +143,8 @@ try {
                   var digest = pkcs11.C_DigestFinal(session, Buffer(256 / 8));                  
                   data.digest = digest.toString('hex');                 
                   pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, hObject);
-                  pkcs11.C_SignUpdate(session, data.digest);
+                  pkcs11.C_SignUpdate(session, new Buffer(data.digest));
                   var signature = pkcs11.C_SignFinal(session, Buffer(256));  
-                  //data.signature = Buffer.concat([new Buffer([0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20]), signature]).toString('base64');
                   data.signature = signature.toString('hex');
                 }
             }
