@@ -117,7 +117,7 @@ try {
       }
       pkcs11.C_FindObjectsFinal(session);   
       pkcs11.C_CloseSession(session);                                 
-      pkcs11.C_Finalize(); 
+      pkcs11.C_Finalize();
       
       if(options.sign) {
         var canJson = canonicalize(data);
@@ -138,19 +138,18 @@ try {
             // Output info for objects from token only
             if (attrs[1].value[0]){
                 if(attrs[2].value.toString().toUpperCase().indexOf('SIGNATURE') != -1) {
+                  pkcs11.C_DigestInit(session, { mechanism: pkcs11js.CKM_SHA256 });                   
+                  pkcs11.C_DigestUpdate(session, new Buffer(canJson));
+                  var digest = pkcs11.C_DigestFinal(session, Buffer(256 / 8));                  
+                  data.digest = digest.toString('hex');                 
                   pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, hObject);
-                  pkcs11.C_SignUpdate(session, new Buffer(canJson));
+                  pkcs11.C_SignUpdate(session, new Buffer(digest.toString('hex')));
                   var signature = pkcs11.C_SignFinal(session, Buffer(256));  
-                  data.signature = signature.toString('base64');
+                  data.signature = Buffer.concat([new Buffer([0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20]), signature]).toString('base64');
                 }
             }
             hObject = pkcs11.C_FindObjects(session);
         }
-        /*
-        pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, keys.privateKey);         
-        pkcs11.C_SignUpdate(session, new Buffer(canJson));
-        var signature = pkcs11.C_SignFinal(session, Buffer(256));        
-        */
         pkcs11.C_FindObjectsFinal(session);        
         pkcs11.C_CloseSession(session);                                 
         pkcs11.C_Finalize(); 
