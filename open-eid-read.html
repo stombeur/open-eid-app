@@ -15,7 +15,7 @@ eid.read = function() {
   setTimeout(function() {
     var list = document.getElementById('lib');
     var lib = list.options[list.options.selectedIndex].value;
-    messageUI.send('read', {lib_path: lib});
+    messageUI.send('read', {lib_path: lib, sign: document.getElementById('sign').checked});
   }, 100);
 }
 </script>
@@ -28,7 +28,7 @@ eid.read = function() {
     <option value="">Loading...</option>
   </select><br /><br />
   <label class="container">Request user consent (sign read result)
-    <input type="checkbox" >
+    <input type="checkbox" id="sign" />
     <span class="checkmark"></span>
   </label>  
   <br /><br />

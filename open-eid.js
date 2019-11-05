@@ -13,9 +13,7 @@ try {
   var pkcs11 = null;
   var session = null;
   var args = '';
-  
-  fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), '');
- 
+   
   if(process.argv.length > 1) args = process.argv[1];
   var parts = args.split(':');
   var proto = parts[0];
@@ -121,6 +119,43 @@ try {
       pkcs11.C_CloseSession(session);                                 
       pkcs11.C_Finalize(); 
       
+      if(options.sign) {
+        var canJson = canonicalize(data);
+        pkcs11 = new pkcs11js.PKCS11();
+        pkcs11.load(options.lib_path);
+        pkcs11.C_Initialize(); 
+        var slots = pkcs11.C_GetSlotList(true);     
+        var slot = slots[0];          
+        session = pkcs11.C_OpenSession(slot, pkcs11js.CKF_RW_SESSION | pkcs11js.CKF_SERIAL_SESSION);      
+        pkcs11.C_FindObjectsInit(session, [{ type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PRIVATE_KEY }]);
+        var hObject = pkcs11.C_FindObjects(session);
+        while (hObject) {
+            var attrs = pkcs11.C_GetAttributeValue(session, hObject, [
+                { type: pkcs11js.CKA_CLASS },
+                { type: pkcs11js.CKA_TOKEN },
+                { type: pkcs11js.CKA_LABEL }
+            ]);
+            // Output info for objects from token only
+            if (attrs[1].value[0]){
+                if(attrs[2].value.toString().toUpperCase().indexOf('SIGNATURE') != -1) {
+                  pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, hObject);
+                  pkcs11.C_SignUpdate(session, new Buffer(canJson));
+                  var signature = pkcs11.C_SignFinal(session, Buffer(256));  
+                  data.signature = signature.toString('base64');
+                }
+            }
+            hObject = pkcs11.C_FindObjects(session);
+        }
+        /*
+        pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, keys.privateKey);         
+        pkcs11.C_SignUpdate(session, new Buffer(canJson));
+        var signature = pkcs11.C_SignFinal(session, Buffer(256));        
+        */
+        pkcs11.C_FindObjectsFinal(session);        
+        pkcs11.C_CloseSession(session);                                 
+        pkcs11.C_Finalize(); 
+      }
+      
       var url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
       var cmd = '';
       var options = {};
@@ -185,8 +220,8 @@ try {
       app.quit();
       
     } catch(e2){
-      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e2.toString());
-      //app.quit();
+      dialog.showErrorBox('Error', e2.stack);      
+      app.quit();
     }       
   }
  
@@ -231,7 +266,7 @@ try {
           
           } catch(e){
             
-            fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
+            dialog.showErrorBox('Error', e.stack);
             app.quit();
             
           }            
@@ -318,11 +353,52 @@ try {
   }
   
 } catch(e){
-    //try { pkcs11.C_FindObjectsFinal(session); } catch(e2) {}
-    //try { pkcs11.C_CloseSession(session); } catch(e2) {}                                
-    //try { pkcs11.C_Finalize(); } catch(e2) {}
-    //fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Errors.txt'), e.toString());
-    //app.quit();
-    dialog.showErrorBox('Error', e.toString());
+    try { pkcs11.C_FindObjectsFinal(session); } catch(e2) {}
+    try { pkcs11.C_CloseSession(session); } catch(e2) {}                                
+    try { pkcs11.C_Finalize(); } catch(e2) {}
+    dialog.showErrorBox('Error', e.stack);
+    app.quit();
 }
 
+var canonicalize = function(object) {
+    var buffer = '';
+    serialize(object);
+    return buffer;
+    function serialize(object) {
+        if (object !== null && typeof object === 'object') {
+            if (Array.isArray(object)) {
+                buffer += '[';
+                let next = false;
+                // Array - Maintain element order
+                object.forEach((element) => {
+                    if (next) {
+                        buffer += ',';
+                    }
+                    next = true;
+                    // Recursive call
+                    serialize(element);
+                });
+                buffer += ']';
+            } else {
+                buffer += '{';
+                let next = false;
+                // Object - Sort properties before serializing
+                Object.keys(object).sort().forEach((property) => {
+                    if (next) {
+                        buffer += ',';
+                    }
+                    next = true;
+                    // Properties are just strings - Use ES6
+                    buffer += JSON.stringify(property);
+                    buffer += ':';
+                    // Recursive call
+                    serialize(object[property]);
+                });
+                buffer += '}';
+            }
+        } else {
+            // Primitive data type - Use ES6
+            buffer += JSON.stringify(object);
+        }
+    }
+};
