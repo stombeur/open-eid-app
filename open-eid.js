@@ -117,7 +117,9 @@ try {
       pkcs11.C_FindObjectsFinal(session);   
       pkcs11.C_CloseSession(session);                                 
       pkcs11.C_Finalize();
-      
+
+      data = trim_data(data);
+
       if(options.sign) {
         pkcs11 = new pkcs11js.PKCS11();
         pkcs11.load(options.lib_path);
@@ -150,6 +152,7 @@ try {
         pkcs11.C_FindObjectsFinal(session);        
         pkcs11.C_CloseSession(session);                                 
         pkcs11.C_Finalize();  
+        data = trim_data(data);        
         var canJson = canonicalize(data);               
         pkcs11 = new pkcs11js.PKCS11();
         pkcs11.load(options.lib_path);
@@ -202,34 +205,8 @@ try {
         } else {
           cmd = 'open "' + browser + '" "' + url + '"';     
         }
+        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.command'), '#!/bin/sh\n' + cmd);
       } else {
-        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL.txt'), url);
-        if(url.length > 8000) {
-          for(var k in data) {
-            if(k.indexOf('_data') != -1) delete data[k];
-          }
-          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
-        }
-        if(url.length > 8000) {
-          for(var k in data) {
-            if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
-          }
-          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
-        }
-        if(url.length > 8000) {
-          for(var k in data) {
-            if(k == 'photo_file') delete data[k];
-          }
-          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
-        }
-        if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-          if(url.length > 2048) {
-            for(var k in data) {
-              if(k == 'photo_file') delete data[k];
-            }
-            url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
-          }          
-        }
         options = { windowsHide: true };
         fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
         
@@ -244,8 +221,8 @@ try {
         } else {
           cmd = '"' + browser + '" "' + url + '"';
         }
+        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.cmd'), '@echo off\r\n' + cmd + '\r\npause');
       }
-      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.txt'), cmd);
     	exec(cmd, options);    
       app.quit();
       
@@ -273,6 +250,32 @@ try {
   	'e-id-sign': 'sign',
   	'open-eid-sign': 'sign'
   }
+  
+  function trim_data(data) {
+    var url = encodeURIComponent(JSON.stringify(data));
+    if(os.platform().indexOf('win') == 0) {
+      if(url.length > 4000) {
+        for(var k in data) {
+          if(k.indexOf('_data') != -1) delete data[k];
+        }
+        url = encodeURIComponent(JSON.stringify(data));
+      }
+      if(url.length > 4000) {
+        for(var k in data) {
+          if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
+        }
+        url = encodeURIComponent(JSON.stringify(data));
+      }
+      if(url.length > 4000) {
+        for(var k in data) {
+          if(k == 'photo_file') delete data[k];
+        }
+        url = encodeURIComponent(JSON.stringify(data));
+      }
+      fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
+    } 
+    return data;   
+  }   
   
   function fx_read() {
 
@@ -326,14 +329,15 @@ try {
     app.once('ready', () => {
         mainWindow = new BrowserWindow({
             title: 'Open e-ID',
-            titleBarStyle: 'hiddenInset',
+            titleBarStyle: 'default',
             resizable: false,
             minimizable: false,
             maximizable: false,
             show: false,
-            width: 300, height: 100,
+            width: 300, height: 150,
             center: true,
         }).once('ready-to-show', () => {
+            mainWindow.setMenu(null);              
             mainWindow.show();
         });
     
