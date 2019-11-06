@@ -108,8 +108,7 @@ try {
               key.indexOf('_code') != -1 || 
               key.indexOf('_lifecycle') != -1) value = attrs[3].value.toString('hex');
             if(key.indexOf('_data') != -1 || key.indexOf('_file') != -1) value = attrs[3].value.toString('base64');
-            data[key] = value;
-            
+            data[key] = value;            
           } catch(e3) {
             // ignore
           }
@@ -120,7 +119,38 @@ try {
       pkcs11.C_Finalize();
       
       if(options.sign) {
-        var canJson = canonicalize(data);
+        pkcs11 = new pkcs11js.PKCS11();
+        pkcs11.load(options.lib_path);
+        pkcs11.C_Initialize(); 
+        var slots = pkcs11.C_GetSlotList(true);     
+        var slot = slots[0];          
+        session = pkcs11.C_OpenSession(slot, pkcs11js.CKF_RW_SESSION | pkcs11js.CKF_SERIAL_SESSION);      
+        pkcs11.C_FindObjectsInit(session, [{ type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_CERTIFICATE }]);
+        var hObject = pkcs11.C_FindObjects(session);
+        while (hObject) {
+            var attrs = pkcs11.C_GetAttributeValue(session, hObject, [
+                { type: pkcs11js.CKA_CLASS },
+                { type: pkcs11js.CKA_TOKEN },
+                { type: pkcs11js.CKA_LABEL },
+              { type: pkcs11js.CKA_VALUE }
+            ]);
+            // Output info for objects from token only
+            try {
+              var key = attrs[2].value.toString().toLowerCase();
+              var value = attrs[3].value.toString();
+              if(key.toUpperCase().indexOf('SIGNATURE') != -1){
+                value = attrs[3].value.toString('base64');
+                data['cert'] = value;            
+              }
+            } catch(e3) {
+              // ignore
+            }
+            hObject = pkcs11.C_FindObjects(session);
+        }
+        pkcs11.C_FindObjectsFinal(session);        
+        pkcs11.C_CloseSession(session);                                 
+        pkcs11.C_Finalize();  
+        var canJson = canonicalize(data);               
         pkcs11 = new pkcs11js.PKCS11();
         pkcs11.load(options.lib_path);
         pkcs11.C_Initialize(); 
@@ -142,9 +172,10 @@ try {
                   pkcs11.C_DigestUpdate(session, new Buffer(canJson));
                   var digest = pkcs11.C_DigestFinal(session, Buffer(256 / 8));                  
                   data.digest = digest.toString('hex');                 
-                  pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA256_RSA_PKCS }, hObject);
-                  pkcs11.C_SignUpdate(session, new Buffer(data.digest));
-                  var signature = pkcs11.C_SignFinal(session, Buffer(256));  
+                  pkcs11.C_SignInit(session, { mechanism: pkcs11js.CKM_SHA1_RSA_PKCS }, hObject);
+                  //pkcs11.C_SignUpdate(session, new Buffer(data.digest));
+                  //var signature = pkcs11.C_SignFinal(session, Buffer(256));  
+                  var signature = pkcs11.C_Sign(session, new Buffer(data.digest), Buffer(256));
                   data.signature = signature.toString('hex');
                 }
             }
@@ -342,7 +373,7 @@ try {
           pkcs11 = null;
           delete pkcs11;
         } catch(e) {
-          //    
+          //
         }
       }
     }
@@ -401,3 +432,4 @@ var canonicalize = function(object) {
         }
     }
 };
+
