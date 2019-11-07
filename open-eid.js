@@ -217,7 +217,8 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          var cert = data.cert;
+          var cert = '';
+          if('cert' in data) cert = data.cert;
           delete data.cert;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<html><head><title>Open e-ID</title></head><body onload="document.forms[0].submit();"><form action="' + url + '"><input type="hidden" name="eid-cert" value="' + encodeURIComponent(cert) + '" /></form></body></html>');
