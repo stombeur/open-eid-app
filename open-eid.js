@@ -216,12 +216,12 @@ try {
           cmd = '"' + browser + '" --args --app="' + url + '"';
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
-        //} else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-          //cmd = '"' + browser + '" -k "' + url + '"';     
+        } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
+          cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
           cmd = '"' + browser + '" "' + url + '"';
         }
-        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.cmd'), '@echo off\r\n' + cmd + '\r\npause');
+        fs.writeFileSync(path.join(os.homedir(), 'Open e-ID Cmd.cmd'), '@echo off\r\n' + cmd.replace(/[%]/g, '%%') + '\r\npause');
       }
     	exec(cmd, options);    
       app.quit();
