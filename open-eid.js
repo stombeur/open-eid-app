@@ -220,8 +220,10 @@ try {
           var cert = '';
           if('cert' in data) cert = data.cert;
           delete data.cert;
-          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<html><head><title>Open e-ID</title></head><body onload="document.forms[0].submit();"><form action="' + url + '"><input type="hidden" name="eid-cert" value="' + encodeURIComponent(cert) + '" /></form></body></html>');
+          url = new String(args).replace(proto, 'https');
+          if(url.indexOf('?') == -1) url += '?';
+          url += '&eid-cert=' + encodeURIComponent(cert) + '#' + encodeURIComponent(JSON.stringify(data));
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<html><head><title>Open e-ID</title><meta http-equiv="refresh" content="0;URL=' + url + '"></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
