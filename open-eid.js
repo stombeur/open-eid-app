@@ -217,6 +217,8 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<html><head><title>Open e-ID</title><meta http-equiv="refresh" content="1;URL=' + url + '" /></head><body></body></html>');
+          url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
           cmd = '"' + browser + '" "' + url + '"';
