@@ -219,7 +219,9 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)' + new String(args).replace(proto, 'https') + ' -->\r\n<title>Open e-ID</title></head><body onload="window.open(\'' + url.replace(/'/g, '\\\'') + '\', \'' + ((wname == '') ? '_self' : wname) + '\');"></body></html>');
+          var host = new String(args).replace(proto, 'https');
+          host = host.substring(0, host.lastIndexOf('/'));
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0014)' + host + ' -->\r\n<title>Open e-ID</title></head><body onload="window.open(\'' + url.replace(/'/g, '\\\'') + '\', \'' + ((wname == '') ? '_self' : wname) + '\');"></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
