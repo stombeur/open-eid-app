@@ -219,7 +219,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!-- saved from url=(0014)about:internet --><html><head><title>Open e-ID</title></head><body onload="window.open(\'http://www.google.be\', \'' + wname + '\');"></body></html>');
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<html><head><!-- saved from url=(0014)about:internet --><title>Open e-ID</title></head><body onload="window.open(\'http://www.google.be\', \'' + wname + '\');"></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
