@@ -19,6 +19,7 @@ try {
   var proto = parts[0];
   var browser = '';
   var bundle = '';
+  var wname = '';
   parts = args.split('?');
   if(parts.length > 1) {
     parts = parts[1].split('&');
@@ -26,6 +27,7 @@ try {
       var nameval = parts[i].split('=');
       if(nameval[0] == 'eid-app') browser = nameval[1];
       if(nameval[0] == 'eid-bundle') bundle = nameval[1];
+      if(nameval[0] == 'eid-window') wname = nameval[1];
     }
   }
   
@@ -217,6 +219,8 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
+          data['eid-window'] = wname;
+          url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
