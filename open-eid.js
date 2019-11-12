@@ -231,7 +231,7 @@ try {
           //data['eid-window'] = wname;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
           if(url.length > 5120) {
-            url = new String(args).replace(proto, 'https') + '#!' + encodeURIComponent(lzs.compress(data)); 
+            url = new String(args).replace(proto, 'https') + '#!' + encodeURIComponent(lzs.compressToBase64(JSON.stringify(data))); 
           }
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
