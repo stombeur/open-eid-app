@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const { exec, execSync } = require('child_process');
+const lzs = require('lz-string');
 
 try {
 
@@ -229,6 +230,9 @@ try {
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
           //data['eid-window'] = wname;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
+          if(url.length > 5120) {
+            url = new String(args).replace(proto, 'https') + '#!' + encodeURIComponent(lzs.compress(data)); 
+          }
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
@@ -268,28 +272,28 @@ try {
   function trim_data(data) {
     var url = encodeURIComponent(JSON.stringify(data));
     if(os.platform().indexOf('win') == 0) {
-      if(url.length > 4000) {
+      if(url.length > 8000) {
         for(var k in data) {
           if(k.indexOf('_data') != -1) delete data[k];
         }
         url = encodeURIComponent(JSON.stringify(data));
       }
-      if(url.length > 4000) {
+      if(url.length > 8000) {
         for(var k in data) {
           if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
         }
         url = encodeURIComponent(JSON.stringify(data));
       }
-      if(url.length > 4000) {
+      if(url.length > 8000) {
         for(var k in data) {
           if(k == 'photo_file') delete data[k];
         }
         url = encodeURIComponent(JSON.stringify(data));
       }
       if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-        if(url.length > 2000) {
+        if(url.length > 5000) {
           for(var k in data) {
-            if(k.indexOf('_file') != -1) delete data[k];
+            if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
           }
           url = encodeURIComponent(JSON.stringify(data));
         }
