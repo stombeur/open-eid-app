@@ -5,13 +5,13 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const { exec, execSync } = require('child_process');
-const lzs = require('lz-string');
 
 try {
 
   let mainWindow;
   var pkcs11js = require('pkcs11js');             
   var rsa = require('jsrsasign');        
+  var jpeg = require('jpeg-js');  
   var pkcs11 = null;
   var session = null;
   var args = '';
@@ -21,7 +21,6 @@ try {
   var proto = parts[0];
   var browser = '';
   var bundle = '';
-  var wname = '';
   parts = args.split('?');
   if(parts.length > 1) {
     parts = parts[1].split('&');
@@ -29,7 +28,6 @@ try {
       var nameval = parts[i].split('=');
       if(nameval[0] == 'eid-app') browser = nameval[1];
       if(nameval[0] == 'eid-bundle') bundle = nameval[1];
-      if(nameval[0] == 'eid-window') wname = nameval[1];
     }
   }
   
@@ -200,7 +198,7 @@ try {
         pkcs11.C_Finalize(); 
       }
       
-      var url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));
+      var url = new String(args).replace(proto, 'https') + '#' + encode(data);
       var cmd = '';
       var options = {};
       if(os.platform() == 'darwin') {
@@ -228,14 +226,9 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          //data['eid-window'] = wname;
           var s = JSON.stringify(data);
-          url = new String(args).replace(proto, 'https') + '#' + s.length + ',' + encodeURIComponent(s);        
-          if(url.length > 5120) {
-            var e = lzs.compressToUint8Array(JSON.stringify(data));
-            url = new String(args).replace(proto, 'https') + '#!' + s.length + ',' + e.length + ',' + encodeURIComponent(rsa.hextob64(rsa.BAtohex(e))); 
-          }
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
+          url = new String(args).replace(proto, 'https') + '#' + encode(s);        
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="5;' + url + '" /></head><body onload="var a = document.createElement(\'a\'); a.setAttribute(\'href\', \'' + url.replace(/\'/g, '\\\'') + '\'); document.body.appendChild(a); a.click();"></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
@@ -271,33 +264,84 @@ try {
   	'open-eid-sign': 'sign'
   }
   
+  function encode(data) {
+    var s = data;
+    if(typeof s == 'object') s = JSON.stringify(data);
+    return encodeURIComponent(s).replace(/\%2F/g, '/');
+  }
+  
   function trim_data(data) {
-    var url = encodeURIComponent(JSON.stringify(data));
+    var url = encode(data);
     if(os.platform().indexOf('win') == 0) {
       if(url.length > 8000) {
         for(var k in data) {
           if(k.indexOf('_data') != -1) delete data[k];
         }
-        url = encodeURIComponent(JSON.stringify(data));
+        url = encode(data);
       }
       if(url.length > 8000) {
         for(var k in data) {
           if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
         }
-        url = encodeURIComponent(JSON.stringify(data));
+        url = encode(data);
       }
       if(url.length > 8000) {
         for(var k in data) {
           if(k == 'photo_file') delete data[k];
         }
-        url = encodeURIComponent(JSON.stringify(data));
+        url = encode(data);
       }
       if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-        if(url.length > 5000) {
+        if(url.length > 4000) {
           for(var k in data) {
+            if(k.indexOf('carddata_') == 0) delete data[k];
+            if(k.indexOf('_hash') != -1) delete data[k];
             if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
           }
-          url = encodeURIComponent(JSON.stringify(data));
+          url = encode(data);
+        }
+        var q = 80;
+        var rawImageData = null;
+        while(url.length > 4000 && q >= 10) {
+          for(var k in data) {
+            if(k == 'photo_file') {
+              if(rawImageData == null) rawImageData = jpeg.decode(new Buffer(data[k], 'base64'));
+              q -= 10;
+              if(q == 0) q = 5;
+              if(q == 70) {
+                // resize
+                var ratio = 2;
+                var width = parseInt(rawImageData.width / ratio);
+                var height = parseInt(rawImageData.height / ratio);
+                var buffer = new Buffer(width * height * 4);
+                var i = 0;
+                var j = 0;
+                for(var y = 0; y < rawImageData.height; y += ratio) {
+                  for(var x = 0; x < rawImageData.width; x += ratio) {
+                    i = (x * 4) + (y * (rawImageData.width * 4));
+                    buffer[j++] = rawImageData.data[i++];
+                    buffer[j++] = rawImageData.data[i++];
+                    buffer[j++] = rawImageData.data[i++];
+                    buffer[j++] = rawImageData.data[i++];   
+                    if(j >= buffer.length) break;                 
+                  }
+                  if(j >= buffer.length) break;                 
+                }
+                rawImageData.width = width;
+                rawImageData.height = height;
+                rawImageData.data = buffer;
+              }
+              var jpegImageData = jpeg.encode(rawImageData, q);
+              data[k] = jpegImageData.data.toString('base64');
+            }
+          }
+          url = encode(data);
+        }
+        if(url.length > 4000) {
+          for(var k in data) {
+            if(k == 'photo_file') delete data[k];
+          }
+          url = encode(data);
         }
       }
       fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
@@ -463,4 +507,3 @@ module.exports = JSON.canonify;
 
 },{}]},{},[1])
 ;
-

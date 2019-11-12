@@ -10,8 +10,9 @@ cp -f open-eid-read.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid-re
 cp -f loading.gif "./mac/Open e-ID.app/Contents/Resources/app/loading.gif"
 cp -f node_modules/jsrsasign/package.json "./mac/Open e-ID.app/Contents/Resources/node_modules/jsrsasign/package.json"
 cp -f node_modules/jsrsasign/lib/jsrsasign.js "./mac/Open e-ID.app/Contents/Resources/node_modules/jsrsasign/lib/jsrsasign.js"
-cp -f node_modules/lz-string/package.json "./mac/Open e-ID.app/Contents/Resources/node_modules/lz-string/package.json"
-cp -f node_modules/lz-string/libs/lz-string.js "./mac/Open e-ID.app/Contents/Resources/node_modules/lz-string/libs/lz-string.js"
+cp -f node_modules/jpeg-js/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/jpeg-js/index.js"
+cp -f node_modules/jpeg-js/lib/decoder.js "./mac/Open e-ID.app/Contents/Resources/node_modules/jpeg-js/lib/decoder.js"
+cp -f node_modules/jpeg-js/lib/encoder.js "./mac/Open e-ID.app/Contents/Resources/node_modules/jpeg-js/lib/encoder.js"
 cp -f node_modules/pkcs11js/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/index.js"
 cp -f node_modules/pkcs11.mac "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/build/Release/pkcs11.node"
 osacompile -o open-eid.app open-eid.applescript

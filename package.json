@@ -6,8 +6,8 @@
   "author": "Open e-ID",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "jpeg-js": "^0.3.6",
     "jsrsasign": "^8.0.12",
-    "lz-string": "^1.4.4",
     "pkcs11js": "^1.0.19"
   }
 }
