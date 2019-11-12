@@ -10,6 +10,7 @@ try {
 
   let mainWindow;
   var pkcs11js = require('pkcs11js');             
+  var rsa = require('jsrsasign');        
   var pkcs11 = null;
   var session = null;
   var args = '';
@@ -219,6 +220,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
+          if('cert' in data) data['cert'] = rsa.hextob64(rsa.X509.readCertPEM(data['cert']).getPublicKeyHex());
           data['eid-window'] = wname;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
@@ -277,6 +279,14 @@ try {
           if(k == 'photo_file') delete data[k];
         }
         url = encodeURIComponent(JSON.stringify(data));
+      }
+      if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
+        if(url.length > 2000) {
+          for(var k in data) {
+            if(k.indexOf('_file') != -1) delete data[k];
+          }
+          url = encodeURIComponent(JSON.stringify(data));
+        }
       }
       fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
     } 

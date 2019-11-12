@@ -8,6 +8,8 @@ cp -f open-eid.css "./mac/Open e-ID.app/Contents/Resources/app/open-eid.css"
 cp -f open-eid.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid.html"
 cp -f open-eid-read.html "./mac/Open e-ID.app/Contents/Resources/app/open-eid-read.html"
 cp -f loading.gif "./mac/Open e-ID.app/Contents/Resources/app/loading.gif"
+cp -f node_modules/jsrsasign/package.json "./mac/Open e-ID.app/Contents/Resources/node_modules/jsrsasign/package.json"
+cp -f node_modules/jsrsasign/lib/jsrsasign.js "./mac/Open e-ID.app/Contents/Resources/node_modules/jsrsasign/lib/jsrsasign.js"
 cp -f node_modules/pkcs11js/index.js "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/index.js"
 cp -f node_modules/pkcs11.mac "./mac/Open e-ID.app/Contents/Resources/node_modules/pkcs11js/build/Release/pkcs11.node"
 osacompile -o open-eid.app open-eid.applescript
