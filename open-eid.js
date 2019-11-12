@@ -220,7 +220,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          if('cert' in data) data['cert'] = rsa.hextob64(new rsa.X509().readCertPEM(data['cert']).getPublicKeyHex());
+          if('cert' in data) data['cert'] = new rsa.X509().readCertHex(rsa.b64tohex(data['cert']));
           data['eid-window'] = wname;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
