@@ -188,7 +188,7 @@ try {
                   //pkcs11.C_SignUpdate(session, new Buffer(data.digest));
                   //var signature = pkcs11.C_SignFinal(session, Buffer(256));  
                   var signature = pkcs11.C_Sign(session, new Buffer(data.digest), Buffer(256));
-                  data.signature = signature.toString('hex');
+                  data.signature = rsa.hextob64(signature.toString('hex'));
                 }
             }
             hObject = pkcs11.C_FindObjects(session);
@@ -228,7 +228,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
           var s = JSON.stringify(data);
           url = new String(args).replace(proto, 'https') + '#' + encode(s);        
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="5;' + url + '" /></head><body onload="var a = document.createElement(\'a\'); a.setAttribute(\'href\', \'' + url.replace(/\'/g, '\\\'') + '\'); document.body.appendChild(a); a.click();"></body></html>');
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title></head><body onload="var a = document.createElement(\'a\'); a.setAttribute(\'href\', \'' + url.replace(/\'/g, '\\\'') + '\'); document.body.appendChild(a); a.click();"></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
@@ -311,6 +311,7 @@ try {
               if(q == 70) {
                 // resize
                 var ratio = 2;
+                if('cert' in data) ratio = 10;
                 var width = parseInt(rawImageData.width / ratio);
                 var height = parseInt(rawImageData.height / ratio);
                 var buffer = new Buffer(width * height * 4);
