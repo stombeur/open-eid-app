@@ -155,7 +155,14 @@ try {
         pkcs11.C_FindObjectsFinal(session);        
         pkcs11.C_CloseSession(session);                                 
         pkcs11.C_Finalize();  
-        data = trim_data(data);        
+        data = trim_data(data);      
+        if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // IE limited URL size -> get public key from cert
+          if('cert' in data) {
+            var x509 = new rsa.X509();
+            x509.readCertHex(rsa.b64tohex(data['cert']));
+            data['cert'] = rsa.hextob64(x509.getPublicKeyHex());
+          } 
+        }         
         var canJson = JSON.canonify(data);               
         pkcs11 = new pkcs11js.PKCS11();
         pkcs11.load(options.lib_path);
@@ -220,8 +227,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
-          if('cert' in data) data['cert'] = new rsa.X509().readCertHex(rsa.b64tohex(data['cert']));
-          data['eid-window'] = wname;
+          //data['eid-window'] = wname;
           url = new String(args).replace(proto, 'https') + '#' + encodeURIComponent(JSON.stringify(data));        
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
