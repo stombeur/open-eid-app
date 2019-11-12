@@ -229,11 +229,11 @@ try {
           cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
           //data['eid-window'] = wname;
-          var s = encodeURIComponent(JSON.stringify(data));
-          url = new String(args).replace(proto, 'https') + '#' + s.length + ',' + s;        
+          var s = JSON.stringify(data);
+          url = new String(args).replace(proto, 'https') + '#' + s.length + ',' + encodeURIComponent(s);        
           if(url.length > 5120) {
-            var e = compressToEncodedURIComponent(JSON.stringify(data));
-            url = new String(args).replace(proto, 'https') + '#!' + s.length + ',' + e.length + ',' + e; 
+            var e = lzs.compressToUint8Array(JSON.stringify(data));
+            url = new String(args).replace(proto, 'https') + '#!' + s.length + ',' + e.length + ',' + encodeURIComponent(rsa.hextob64(rsa.BAtohex(e))); 
           }
           fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta http-equiv="refresh" content="0;' + url + '" /></head><body></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
