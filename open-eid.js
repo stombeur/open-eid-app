@@ -158,7 +158,8 @@ try {
         pkcs11.C_FindObjectsFinal(session);        
         pkcs11.C_CloseSession(session);                                 
         pkcs11.C_Finalize();  
-        if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // IE limited URL size -> get public key from cert
+        //if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // IE limited URL size -> get public key from cert
+        if(os.platform().indexOf('win') == 0) { // Win limited URL size -> get public key from cert
           if('cert' in data) {
             var x509 = new rsa.X509();
             x509.readCertHex(rsa.b64tohex(data['cert']));
@@ -228,7 +229,11 @@ try {
         if(browser.toLowerCase().indexOf('\\chrome.exe') != -1) {
           cmd = '"' + browser + '" --args --app="' + url + '"';
         } else if(browser.toLowerCase().indexOf('\\firefox.exe') != -1) {
-          cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
+          if(url.indexOf('callback=') != -1) {
+            cmd = '"' + browser + '" -width 300 -height 300 -new-window "' + url + '"';     
+          } else {
+            cmd = '"' + browser + '" -width 700 -height 500 -new-window "' + url + '"';                 
+          }
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
           var s = JSON.stringify(data);
           url = new String(args).replace(proto, 'https') + '#' + encode(s);        
@@ -277,26 +282,29 @@ try {
   function trim_data(data) {
     var url = encode(data);
     if(os.platform().indexOf('win') == 0) {
-      if(url.length > 8000) {
+      var maxlen = 5100;      
+      if(url.length > maxlen) {
         for(var k in data) {
           if(k.indexOf('_data') != -1) delete data[k];
         }
         url = encode(data);
       }
-      if(url.length > 8000) {
+      if(url.length > maxlen) {
         for(var k in data) {
           if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
         }
         url = encode(data);
       }
-      if(url.length > 8000) {
+      /*
+      if(url.length > maxlen) {
         for(var k in data) {
           if(k == 'photo_file') delete data[k];
         }
         url = encode(data);
       }
-      if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-        var maxlen = 5100;   
+      */
+      //if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
+        maxlen = 5100;
         if(dosign) maxlen = 4200;     
         var pic = '';
         if('photo_file' in data) pic = data['photo_file'];
@@ -355,7 +363,7 @@ try {
           }
           url = encode(data);
         }
-      }
+      //}
       fs.writeFileSync(path.join(os.homedir(), 'Open e-ID URL 2.txt'), url);
     } 
     return data;   
