@@ -15,6 +15,7 @@ try {
   var pkcs11 = null;
   var session = null;
   var args = '';
+  var dosign = false;
    
   if(process.argv.length > 1) args = process.argv[1];
   var parts = args.split(':');
@@ -54,6 +55,9 @@ try {
  
   function eid_read(options) {
     try {
+      
+      dosign = options.sign;
+      
       console.log('Read using ' + options.lib_path);
       pkcs11 = new pkcs11js.PKCS11();
       pkcs11.load(options.lib_path);
@@ -154,7 +158,6 @@ try {
         pkcs11.C_FindObjectsFinal(session);        
         pkcs11.C_CloseSession(session);                                 
         pkcs11.C_Finalize();  
-        data = trim_data(data);      
         if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // IE limited URL size -> get public key from cert
           if('cert' in data) {
             var x509 = new rsa.X509();
@@ -162,6 +165,7 @@ try {
             data['cert'] = rsa.hextob64(x509.getPublicKeyHex());
           } 
         }         
+        data = trim_data(data);      
         var canJson = JSON.canonify(data);               
         pkcs11 = new pkcs11js.PKCS11();
         pkcs11.load(options.lib_path);
@@ -228,7 +232,7 @@ try {
         } else if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) { // new window blocks localStorage -> new tab
           var s = JSON.stringify(data);
           url = new String(args).replace(proto, 'https') + '#' + encode(s);        
-          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title></head><body onload="var a = document.createElement(\'a\'); a.setAttribute(\'href\', \'' + url.replace(/\'/g, '\\\'') + '\'); document.body.appendChild(a); a.click();"></body></html>');
+          fs.writeFileSync(path.join(os.homedir(), 'Open e-ID.html'), '<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n<meta charset="UTF-8">\r\n<!-- saved from url=(0016)http://localhost -->\r\n<title>Open e-ID</title><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="ie=edge" /><script type="text/javascript">window.addEventListener(\'load\', function() { if(document.links[0].href.indexOf(\'?\') == 1) document.links[0].href = document.links[0].href.replace(\'#\', \'?#\'); document.links[0].href = document.links[0].href.replace(/\\\?refresh=[^&#]/, \'?\').replace(\'?\', \'?refresh=\' + new Date().getTime()); var evt = document.createEvent(\'MouseEvent\'); evt.initMouseEvent(\'click\', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null); document.links[0].dispatchEvent(evt); });</script></head><a href="' + url + '">Click here to continue</a></body></html>');
           url = 'file:///' + path.join(os.homedir(), 'Open e-ID.html').replace(/ /g, '%20');
           cmd = 'cmd.exe /c start "' + browser + '" "' + url + '"';     
         } else {
@@ -292,53 +296,60 @@ try {
         url = encode(data);
       }
       if(browser.toLowerCase().indexOf('\\iexplore.exe') != -1) {
-        if(url.length > 4000) {
+        var maxlen = 5100;   
+        if(dosign) maxlen = 4200;     
+        var pic = '';
+        if('photo_file' in data) pic = data['photo_file'];
+        if(url.length > maxlen) {
           for(var k in data) {
-            if(k.indexOf('carddata_') == 0) delete data[k];
-            if(k.indexOf('_hash') != -1) delete data[k];
             if(k.indexOf('_file') != -1 && k != 'photo_file') delete data[k];
           }
           url = encode(data);
-        }
-        var q = 80;
-        var rawImageData = null;
-        while(url.length > 4000 && q >= 10) {
+        }        
+        if(url.length > maxlen) {
           for(var k in data) {
-            if(k == 'photo_file') {
-              if(rawImageData == null) rawImageData = jpeg.decode(new Buffer(data[k], 'base64'));
-              q -= 10;
-              if(q == 0) q = 5;
-              if(q == 70) {
-                // resize
-                var ratio = 2;
-                if('cert' in data) ratio = 10;
-                var width = parseInt(rawImageData.width / ratio);
-                var height = parseInt(rawImageData.height / ratio);
-                var buffer = new Buffer(width * height * 4);
-                var i = 0;
-                var j = 0;
-                for(var y = 0; y < rawImageData.height; y += ratio) {
-                  for(var x = 0; x < rawImageData.width; x += ratio) {
-                    i = (x * 4) + (y * (rawImageData.width * 4));
-                    buffer[j++] = rawImageData.data[i++];
-                    buffer[j++] = rawImageData.data[i++];
-                    buffer[j++] = rawImageData.data[i++];
-                    buffer[j++] = rawImageData.data[i++];   
-                    if(j >= buffer.length) break;                 
-                  }
-                  if(j >= buffer.length) break;                 
-                }
-                rawImageData.width = width;
-                rawImageData.height = height;
-                rawImageData.data = buffer;
-              }
-              var jpegImageData = jpeg.encode(rawImageData, q);
-              data[k] = jpegImageData.data.toString('base64');
-            }
+            if(k.indexOf('carddata_') == 0 || k.indexOf('_hash') != -1) delete data[k];
           }
           url = encode(data);
+        }        
+        // IE low-res pic (not with signature)
+        if(pic != '') {
+          data['photo_file'] = pic;
+          var q = 80;
+          var rawImageData = null;
+          while(url.length > maxlen && q >= 10) {
+            if(rawImageData == null) rawImageData = jpeg.decode(new Buffer(pic, 'base64'));
+            q -= 10;
+            if(q == 0) q = 5;
+            if(q == 70) {
+              // resize
+              var ratio = 2;
+              var width = parseInt(rawImageData.width / ratio);
+              var height = parseInt(rawImageData.height / ratio);
+              var buffer = new Buffer(width * height * 4);
+              var i = 0;
+              var j = 0;
+              for(var y = 0; y < rawImageData.height; y += ratio) {
+                for(var x = 0; x < rawImageData.width; x += ratio) {
+                  i = (x * 4) + (y * (rawImageData.width * 4));
+                  buffer[j++] = rawImageData.data[i++];
+                  buffer[j++] = rawImageData.data[i++];
+                  buffer[j++] = rawImageData.data[i++];
+                  buffer[j++] = rawImageData.data[i++];   
+                  if(j >= buffer.length) break;                 
+                }
+                if(j >= buffer.length) break;                 
+              }
+              rawImageData.width = width;
+              rawImageData.height = height;
+              rawImageData.data = buffer;
+            }
+            var jpegImageData = jpeg.encode(rawImageData, q);
+            data['photo_file'] = jpegImageData.data.toString('base64');
+            url = encode(data);
+          }
         }
-        if(url.length > 4000) {
+        if(url.length > maxlen) {
           for(var k in data) {
             if(k == 'photo_file') delete data[k];
           }
